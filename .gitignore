@@ -84,3 +84,6 @@ pip-delete-this-directory.txt
 notes/*
 init-databases.sql
 package-lock.json
+
+# Django migrations
+*/migrations/
