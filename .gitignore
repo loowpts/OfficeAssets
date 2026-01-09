@@ -86,4 +86,6 @@ init-databases.sql
 package-lock.json
 
 # Django migrations
-*/migrations/
+**/migrations/*.py
+**/migrations/__pycache__/
+!**/migrations/__init__.py
