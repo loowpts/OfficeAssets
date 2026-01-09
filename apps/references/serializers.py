@@ -1,29 +1,41 @@
 from rest_framework import serializers
 from .models import Category, Location
-from slugify import slugify
 
 
-class CategoryCreateUpdateSerializer(serializers.ModelSerializer):
+class CategorySerializer(serializers.ModelSerializer):
+    """Сериализатор для категорий"""
 
     class Meta:
         model = Category
-        fields = ['id', 'name', 'slug', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'slug', 'created_at', 'updated_at']
+        fields = [
+            'id', 'name', 'slug', 'description',
+            'is_active', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['slug', 'created_at', 'updated_at']
 
     def validate_name(self, value):
-        if not value:
-            raise serializers.ValidationError('Нужно указать названия категории')
-        return value
+        """Валидация имени категории"""
+        if len(value) < 2:
+            raise serializers.ValidationError(
+                'Название категории должно быть не менее 2 символов'
+            )
+        return value.strip()
 
 
-class LocationCreateUpdateSerializer(serializers.ModelSerializer):
+class LocationSerializer(serializers.ModelSerializer):
+    """Сериализатор для локаций"""
 
     class Meta:
         model = Location
-        fields = ['id', 'name', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        fields = [
+            'id', 'name', 'is_active', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['created_at', 'updated_at']
 
     def validate_name(self, value):
-        if not value:
-            raise serializers.ValidationError('Нужно указать название местоположения')
-        return value
+        """Валидация имени локации"""
+        if len(value) < 2:
+            raise serializers.ValidationError(
+                'Название локации должно быть не менее 2 символов'
+            )
+        return value.strip()

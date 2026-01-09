@@ -1,29 +1,33 @@
-from rest_framework import generics, filters
+from rest_framework import filters, viewsets
 from django_filters.rest_framework import DjangoFilterBackend
 from apps.references.models import Category, Location
-from apps.references.serializers import CategoryCreateUpdateSerializer, LocationCreateUpdateSerializer
+from apps.references.serializers import CategorySerializer, LocationSerializer
 
 
-class CategoryListCreateView(generics.ListCreateAPIView):
-    queryset = Category.objects.all().order_by('id')
-    serializer_class = CategoryCreateUpdateSerializer
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    search_fields = ['name']
-    
-    
-class CategoryRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+class CategoryViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet для категорий.
+
+    list: Получить список категорий
+    retrieve: Получить конкретную категорию
+    create: Создать категорию
+    update: Обновить категорию
+    destroy: Удалить категорию
+    """
     queryset = Category.objects.all()
-    serializer_class = CategoryCreateUpdateSerializer
+    serializer_class = CategorySerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['is_active']
+    search_fields = ['name', 'description']
+    ordering_fields = ['name', 'created_at']
 
 
-class LocationListCreateView(generics.ListCreateAPIView):
-    queryset = Location.objects.all().order_by('id')
-    serializer_class = LocationCreateUpdateSerializer
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    search_fields = ['office']
-
-
-class LocationRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+class LocationViewSet(viewsets.ModelViewSet):
+    """ViewSet для локаций"""
     queryset = Location.objects.all()
-    serializer_class = LocationCreateUpdateSerializer
+    serializer_class = LocationSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['is_active']
+    search_fields = ['name']
+    ordering_fields = ['name', 'created_at']
     

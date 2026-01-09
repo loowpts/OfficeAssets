@@ -1,22 +1,19 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from .views import (
-    CategoryListCreateView,
-    CategoryRetrieveUpdateDestroyView,
-    LocationListCreateView,
-    LocationRetrieveUpdateDestroyView
+    CategoryViewSet,
+    LocationViewSet
 )
 
 
 app_name = 'references'
 
+router = DefaultRouter()
+router.register(r'categories', CategoryViewSet, basename='category')
+router.register(r'locations', LocationViewSet, basename='location')
+
 urlpatterns = [
-    
-    path('categories/', CategoryListCreateView.as_view(), name='category-list'),
-    path('categories/<int:pk>/', CategoryRetrieveUpdateDestroyView.as_view(), name='category-detail'),
-    
-    path('locations/', LocationListCreateView.as_view(), name='location-list'),
-    path('locations/<int:pk>/', LocationRetrieveUpdateDestroyView.as_view(), name='location-detail'),
-    
+    path('', include(router.urls)),
 ]
 
 
