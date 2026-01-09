@@ -3,6 +3,10 @@ from django.core.exceptions import ValidationError
 
 
 class Stock(models.Model):
+    """
+    Остатки расходных материалов на складе.
+    ВАЖНО: Только для продуктов с is_consumable=True
+    """
     product = models.ForeignKey(
         'products.Product',
         on_delete=models.CASCADE,
@@ -24,8 +28,11 @@ class Stock(models.Model):
         verbose_name_plural = 'Остатки'
 
     def clean(self):
-        if not self.product.is_consumable:
-            raise ValidationError('StockBalance только для расходных материалов')
+        if self.product and self.product.is_consumable:
+            raise ValidationError(
+                'StockBalance может быть создан только для расходных материалов (is_consumable=True)'
+            )
+            
         if self.quantity < 0:
             raise ValidationError('Количество не может быть отрицательным')
 
@@ -33,12 +40,21 @@ class Stock(models.Model):
         self.full_clean()
         super().save(*args, **kwargs)
 
+    @property
+    def is_low_stock(self):
+        """Проверка низкого остатка"""
+        return self.quantity < self.product.min_stock
+    
     def __str__(self):
         return f'{self.product.name} - {self.location.name}: {self.quantity}'
 
 
 class StockOperations(models.Model):
-    
+    """
+    История складских операций.
+    ВАЖНО: Записи immutable - нельзя изменять после создания.
+    """
+
     class OperationChoices(models.TextChoices):
         RECEIPT = 'receipt', 'Приход'
         EXPENSE = 'expense', 'Расход'
@@ -85,30 +101,49 @@ class StockOperations(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
+    class Meta:
+        verbose_name = 'Операция'
+        verbose_name_plural = 'Операции'
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['product', 'timestamp']),
+            models.Index(fields=['operation_type', 'timestamp']),
+        ]
+    
     def clean(self):
+        """Валидация операции"""
+        # Количество должно быть положительным
         if self.quantity <= 0:
             raise ValidationError('Количество должно быть больше 0')
 
+        # Только для расходников
+        if self.product and not self.product.is_consumable:
+            raise ValidationError('StockOperations только для расходных материалов')
+
+        # Приход: нужен to_location
         if self.operation_type == self.OperationChoices.RECEIPT:
-            if self.from_location:
-                raise ValidationError('При приходе не указывается склад-источник')
             if not self.to_location:
-                raise ValidationError('При приходе нужен склад-получатель')
+                raise ValidationError('Для прихода необходимо указать локацию назначения')
 
-        if self.operation_type == self.OperationChoices.EXPENSE:
+        # Расход: нужен from_location
+        elif self.operation_type == self.OperationChoices.EXPENSE:
             if not self.from_location:
-                raise ValidationError('При расходе обязателен склад-источник')
-            if self.to_location:
-                raise ValidationError('При расходе склад-получатель не указывается')
+                raise ValidationError('Для расхода необходимо указать локацию отправления')
 
-        if self.operation_type == self.OperationChoices.TRANSFER:
+        # Перемещение: нужны оба
+        elif self.operation_type == self.OperationChoices.TRANSFER:
             if not self.from_location or not self.to_location:
-                raise ValidationError('Для перемещения нужны оба склада')
+                raise ValidationError('Для перемещения необходимы обе локации')
             if self.from_location == self.to_location:
-                raise ValidationError('Склады должны отличаться')
+                raise ValidationError('Локации отправления и назначения должны различаться')
 
-    def save(self, *args, **kwargs):
-        if self.pk:
-            raise ValidationError('Операции со складом нельзя изменять')
+    def save(self, force_insert=False, force_update=False, *args, **kwargs):
+        # Запрет на изменение существующих записей
+        if self.pk is not None and not force_insert:
+            raise ValidationError('Операции нельзя изменять после создания')
+
         self.full_clean()
-        super().save(*args, **kwargs)
+        super().save(force_insert=force_insert, force_update=force_update, *args, **kwargs)
+
+        def __str__(self):
+            return f"{self.get_operation_type_display()} - {self.product.name} ({self.quantity})"

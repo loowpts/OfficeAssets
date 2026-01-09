@@ -1,16 +1,11 @@
-from django.urls import path
-from .views import (
-    AssetView,
-    AssetDetailView
-)
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import AssetViewSet
+
+router = DefaultRouter()
+router.register('assets', AssetViewSet, basename='asset')
+
+urlpatterns = router.urls
 
 
-app_name = 'assets'
-
-urlpatterns = [
-    
-    path('assets/', AssetView.as_view(), name='assets_list'),
-    path('assets/<int:pk>/', AssetDetailView.as_view(), name='assets_detail'),
-    
-]
 
