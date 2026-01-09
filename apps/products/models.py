@@ -1,9 +1,16 @@
 from django.db import models
 from apps.references.models import Category
-
+from .validators import (
+    validate_sku_format,
+    validate_product_name,
+    validate_min_stock
+)
 
 class Product(models.Model):
-    name = models.CharField(max_length=250)
+    name = models.CharField(
+        max_length=250,
+        validators=[validate_product_name]
+    )
     
     category = models.ForeignKey(
         Category,
@@ -13,7 +20,8 @@ class Product(models.Model):
     
     sku = models.CharField(
         max_length=100,
-        unique=True
+        unique=True,
+        validators=[validate_sku_format]
     )
     
     is_consumable = models.BooleanField(
@@ -28,7 +36,8 @@ class Product(models.Model):
     
     min_stock = models.PositiveIntegerField(
         default=0,
-        verbose_name='Минимальный остаток'
+        verbose_name='Минимальный остаток',
+        validators=[validate_min_stock]
     )
     
     description = models.TextField(
@@ -48,6 +57,9 @@ class Product(models.Model):
         verbose_name = 'Продукт'
         verbose_name_plural = 'Продукты'
         ordering = ['name']
+        
+    def is_low_stock(self, current_quantity):
+        return current_quantity < self.min_stock
 
     def __str__(self):
         return f'{self.name} ({self.sku})'
