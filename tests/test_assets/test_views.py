@@ -4,7 +4,6 @@ from rest_framework.test import APIClient
 from apps.references.models import Category
 from apps.products.models import Product
 from apps.assets.models import Asset
-from apps.assets.serializers import AssetCreateSerializer
 from apps.references.models import Location
 from django.contrib.auth.models import User
 
