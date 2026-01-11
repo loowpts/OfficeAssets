@@ -6,7 +6,7 @@ from apps.products.serializers import ProductCreateUpdateSerializer
 
 @pytest.mark.django_db
 class TestProductSerializer:
-    
+
     def test_valid_data(self):
         category = Category.objects.create(name='Тест1')
 
@@ -25,10 +25,12 @@ class TestProductSerializer:
         assert serializer.is_valid(), serializer.errors
         product = serializer.save()
 
-        assert product.name == data['name']
+        assert product.name == 'Тестовый продукт'
+        assert product.sku == 'HP-003-MFP'
         assert product.unit == data['unit']
         assert product.min_stock == data['min_stock']
-        
+        assert product.is_consumable is False
+
     def test_valid_update(self):
         category = Category.objects.create(name='Тест1')
 
@@ -44,7 +46,7 @@ class TestProductSerializer:
         product.save()
 
         update_data = {
-            'name': 'Тестовый',
+            'name': 'Обновленный продукт',
             'category': category.id,
             'sku': 'HP-003-MFP',
             'is_consumable': False,
@@ -59,11 +61,10 @@ class TestProductSerializer:
         serializer.save()
         product.refresh_from_db()
 
-        assert product.name == update_data['name']
+        assert product.name == 'Обновленный продукт'
         assert product.min_stock == update_data['min_stock']
-        
-    def test_validation_check(self):
 
+    def test_validation_check_empty_name(self):
         category = Category.objects.create(name='Тест1')
 
         product = Product.objects.create(
@@ -88,5 +89,43 @@ class TestProductSerializer:
 
         serializer = ProductCreateUpdateSerializer(instance=product, data=update_data)
 
-        assert not serializer.is_valid(), serializer.errors
+        assert not serializer.is_valid()
+        assert product.name == 'Тестовый продукт'
+
+    def test_sku_uppercase_and_strip(self):
+        category = Category.objects.create(name='Тест1')
+
+        data = {
+            'name': 'Тестовый продукт',
+            'category': category.id,
+            'sku': '  HP-003-MFP  ',
+            'is_consumable': False,
+            'unit': 'шт',
+            'min_stock': 5,
+        }
+
+        serializer = ProductCreateUpdateSerializer(data=data)
+
+        assert serializer.is_valid(), serializer.errors
+        product = serializer.save()
+
+        assert product.sku == 'HP-003-MFP'
+
+    def test_name_strip(self):
+        category = Category.objects.create(name='Тест1')
+
+        data = {
+            'name': '  Тестовый продукт  ',
+            'category': category.id,
+            'sku': 'HP-003-MFP',
+            'is_consumable': False,
+            'unit': 'шт',
+            'min_stock': 5,
+        }
+
+        serializer = ProductCreateUpdateSerializer(data=data)
+
+        assert serializer.is_valid(), serializer.errors
+        product = serializer.save()
+
         assert product.name == 'Тестовый продукт'    
