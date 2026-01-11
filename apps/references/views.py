@@ -18,7 +18,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['is_active']
-    search_fields = ['name', 'description']
+    search_fields = ['name']
     ordering_fields = ['name', 'created_at']
 
 

@@ -11,7 +11,7 @@ from apps.products.serializers import (
 
 
 class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.select_related('category'),all()
+    queryset = Product.objects.select_related('category').all()
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['category', 'is_consumable', 'unit']
     search_fields = ['name', 'sku', 'description']

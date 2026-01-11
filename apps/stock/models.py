@@ -28,11 +28,11 @@ class Stock(models.Model):
         verbose_name_plural = 'Остатки'
 
     def clean(self):
-        if self.product and self.product.is_consumable:
+        if self.product and not self.product.is_consumable:
             raise ValidationError(
                 'StockBalance может быть создан только для расходных материалов (is_consumable=True)'
             )
-            
+
         if self.quantity < 0:
             raise ValidationError('Количество не может быть отрицательным')
 

@@ -4,6 +4,9 @@ from .models import Asset
 
 
 class AssetListSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source='product.name', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    location_name = serializers.CharField(source='current_location.name', read_only=True)
 
     class Meta:
         model = Asset
