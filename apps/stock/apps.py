@@ -6,4 +6,4 @@ class StockConfig(AppConfig):
     name = 'apps.stock'
 
     def ready(self):
-        import apps.stock.signals  # noqa: F401
+        import apps.stock.signals
