@@ -9,13 +9,13 @@ class Stock(models.Model):
     """
     product = models.ForeignKey(
         'products.Product',
-        on_delete=models.CASCADE,
-        related_name='stocks'
+        on_delete=models.PROTECT,
+        related_name='stock_balances'
     )
     location = models.ForeignKey(
         'references.Location',
-        on_delete=models.CASCADE,
-        related_name='stocks'
+        on_delete=models.PROTECT,
+        related_name='stock_balances'
     )
     quantity = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -26,6 +26,9 @@ class Stock(models.Model):
         db_table = 'stock'
         verbose_name = 'Остаток'
         verbose_name_plural = 'Остатки'
+        indexes = [
+            models.Index(fields=['product', 'location']),
+        ]
 
     def clean(self):
         if self.product and not self.product.is_consumable:
@@ -63,17 +66,9 @@ class StockOperations(models.Model):
     product = models.ForeignKey(
         'products.Product',
         on_delete=models.PROTECT,
-        related_name='stock_operations'
+        related_name='operations'
     )
-    
-    inventory_item = models.ForeignKey(
-        'assets.Asset',
-        on_delete=models.PROTECT,
-        related_name='stock_operations',
-        blank=True,
-        null=True
-    )
-    
+
     operation_type = models.CharField(
         max_length=50,
         choices=OperationChoices.choices,
@@ -145,5 +140,5 @@ class StockOperations(models.Model):
         self.full_clean()
         super().save(force_insert=force_insert, force_update=force_update, *args, **kwargs)
 
-        def __str__(self):
-            return f"{self.get_operation_type_display()} - {self.product.name} ({self.quantity})"
+    def __str__(self):
+        return f"{self.get_operation_type_display()} - {self.product.name} ({self.quantity})"
