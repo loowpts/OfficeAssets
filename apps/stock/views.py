@@ -1,10 +1,8 @@
-from rest_framework import filters, status, viewsets
+from rest_framework import status, viewsets
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.core.exceptions import ValidationError
-
-from apps.references.models import Category, Location
 
 from .models import Stock, StockOperations
 from .services import StockService
