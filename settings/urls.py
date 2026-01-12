@@ -10,6 +10,7 @@ urlpatterns = [
     path('api/v1/', include('apps.products.urls', namespace='products')),
     path('api/v1/', include('apps.assets.urls', namespace='assets')),
     path('api/v1/', include('apps.stock.urls', namespace='stock')),
-    path('api/v1/', include('apps.issues', namespace='issues')),
+    path('api/v1/', include('apps.issues.urls', namespace='issues')),
+    path('api/v1/', include('apps.writeoffs.url', namespace='writeoffs')),
     
 ]
