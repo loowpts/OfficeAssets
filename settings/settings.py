@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from celery.schedules import crontab
 from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -31,11 +32,15 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'django_filters',
+    'drf_spectacular',
 
     'apps.references',
     'apps.products',
     'apps.assets',
     'apps.stock',
+    'apps.core',
+    'apps.issues',
+    'apps.writeoffs',
 
 ]
 
@@ -148,7 +153,14 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.MultiPartParser',
         'rest_framework.parsers.FormParser',
     ],
-    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'OfficeAssets API',
+    'DESCRIPTION': 'API для управления офисным имуществом',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
 }
 
 LOGGING = {
@@ -197,3 +209,24 @@ LOGGING = {
 }
 
 os.makedirs(BASE_DIR / 'logs', exist_ok=True)
+
+CELERY_BEAT_SCHEDULE = {
+    'check-low-stock-daily': {
+        'task': 'apps.stock.tasks.check_low_stock',
+        'schedule': crontab(hour=9, minute=0),
+    },
+    'monthly-writeoff-report': {
+        'task': 'apps.writeoffs.tasks.generate_writeoff_report',
+        'schedule': crontab(day_of_month=1, hour=8, minute=0),
+    },
+}
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': config('REDIS_URL', default='redis://127.0.0.1:6379/1'),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}

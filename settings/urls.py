@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 
 urlpatterns = [
@@ -11,6 +12,9 @@ urlpatterns = [
     path('api/v1/', include('apps.assets.urls', namespace='assets')),
     path('api/v1/', include('apps.stock.urls', namespace='stock')),
     path('api/v1/', include('apps.issues.urls', namespace='issues')),
-    path('api/v1/', include('apps.writeoffs.url', namespace='writeoffs')),
+    path('api/v1/', include('apps.writeoffs.urls', namespace='writeoffs')),
+    
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     
 ]
