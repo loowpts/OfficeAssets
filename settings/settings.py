@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+import dj_database_url
 from celery.schedules import crontab
 from decouple import config
 
@@ -77,11 +78,12 @@ WSGI_APPLICATION = 'settings.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# DATABASE_URL=postgresql://user:password@host:5432/dbname, по умолчанию SQLite
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.parse(
+        config('DATABASE_URL', default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),
+        conn_max_age=600,
+    )
 }
 
 
